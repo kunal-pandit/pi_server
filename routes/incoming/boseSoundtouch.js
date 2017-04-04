@@ -51,12 +51,21 @@ router.post('/power', function(req,res){
 	});
 });
 
-
 router.post('/set-volume', function(req, res){
     var volume = req.headers.volume;
     console.log("User requested to set volume to " + volume);
 
     outBose.setVolume(volume, function responseCallback(speechOutput) {
+        console.log(speechOutput);
+        res.send(speechOutput);
+    });
+});
+
+router.post('/set-source', function(req, res){
+    var source = req.headers.source;
+    console.log("User requested to set source to " + source);
+
+    outBose.selectSource(source, function responseCallback(speechOutput) {
         console.log(speechOutput);
         res.send(speechOutput);
     });
