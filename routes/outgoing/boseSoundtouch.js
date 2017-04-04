@@ -5,7 +5,7 @@
 var request = require('request');
 var bodyParser = require('body-parser');
 var config = require('../../config');
-var parser = require('./../../utils/xmlToJson');
+//var parser = require('./../../utils/xmlToJson');
 
 var sendKey = function(action, keyValue, responseCallback) {
     console.log("send key code " + keyValue);  //verifies key value received
@@ -49,10 +49,16 @@ var checkNowPlaying = function(responseCallback) {
         } else {
         	console.log('Success now playing');
         	if (response.statusCode == 200) {
-        		var json = parser.convert(body);
-        		if(json.nowPlaying.source == 'STANDBY') {
+        		
+        		// commenting this code until xml to json parser is completed
+//        		var json = parser.convert(body);
+//        		if(json.nowPlaying.source == 'STANDBY') {
+        	
+        		if(body.indexOf('STANDBY') > -1) {
+        			console.log("inside satanlsd");
         			responseCallback(false);
         		} else {
+        			console.log("inside else satanls");
         			responseCallback(true);
         		}
         	} else {
@@ -90,8 +96,42 @@ var setVolume = function(volume, responseCallback) {
     });
 };
 
+var selectSource = function(source, responseCallback) {
+    console.log("source is " + source);  //verifies key value received
+    source = source.toUpperCase();
+    var body = '';
+    if (source == 'BLUETOOTH') {
+    	body = '<ContentItem source="' + source + '"></ContentItem>'
+    } else {
+    	body = '<ContentItem source="' + source + '" sourceAccount="' + source + '"></ContentItem>'
+    }
+    request({
+        url: 'http://' + config.bose.togo.ip + ':' + config.bose.togo.port + '/select', //URL to hit
+        //qs: {from: 'blog example', time: +new Date()}, //Query string data
+        method: 'POST', 
+        headers: {
+        	'Content-Type': 'text/xml; charset=utf-8'
+        },
+        body: body
+    }, function(error, response, body){
+        if(error) {
+            console.log('communication error ' + error);
+            responseCallback(response);
+        } else {
+        	console.log('Success source');
+        	if (response.statusCode == 200) {
+        		responseCallback('Bose source set to ' + source);
+        	} else {
+        		responseCallback('Status code ' + response.statusCode);
+        	}
+            console.log(body);
+        }
+    });
+};
+
 module.exports = {
 		sendKey: sendKey,
 		setVolume: setVolume,
-		checkNowPlaying: checkNowPlaying
+		checkNowPlaying: checkNowPlaying,
+		selectSource: selectSource
 }
